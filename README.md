@@ -3,16 +3,37 @@
 Automated, deterministic tests of PreCogn / Structory **public demos** — Playwright only, no
 language model and no secret at execution time (Redmine #152, parent #140).
 
-## What is covered
+## Coverage matrix — module × declination
 
-Static checks, no login required:
+Every cell below is either a real, passing test or explicitly marked "not applicable" with the
+precise reason — never a green cell with nothing behind it. Verified live on 2026-11-08; a
+declination can be added later for a module once it genuinely exists.
+
+| Module | Main (public demo) | App (PWA) | Add-on | Game |
+|---|---|---|---|---|
+| SMC | ✅ `tests/smc/` | ⛔ no `pwa.smc` entry in `modules.json` (sites-internet) | ⚠️ `structory.ai/smc/addon/` exists (200), not yet tested (next PR) | ⛔ not applicable |
+| JdB | ✅ `tests/jdb/` | ⛔ no `pwa.jdb` entry | ⛔ `structory.ai/jdb/addon/` → 404, no add-on exists | ⛔ not applicable |
+| Compta | ✅ `tests/compta/` | ✅ `tests/compta/app.spec.js` | ⛔ `structory.ai/compta/addon/` → 404, no add-on exists | ⚠️ `structory.ai/game/` exists but its attachment to Compta specifically is unconfirmed — not yet tested |
+| Compta Copro | ✅ `tests/comptacopro/` | ✅ `tests/comptacopro/app.spec.js` | ⚠️ `structory.ai/comptacopro/addon/` exists (200), not yet tested (next PR) | ⛔ not applicable |
+| Green | ✅ `tests/green/` | ⛔ no `pwa.green` entry | ⚠️ `structory.ai/green/addon/` exists (200), not yet tested (next PR) | ⛔ not applicable |
+| Briqueterie | ✅ `tests/briqueterie/` (coordinated with A15, who covers deep CI tests in the `briqueterie` repo) | ⛔ no `pwa.briqueterie` entry | ⛔ `structory.ai/briqueterie/addon/` → 404, no add-on exists | ⚠️ the "runner" world inside Briqueterie's own demo is itself a game, but distinct from `structory.ai/game/` — not re-tested here, already covered as part of Main |
+| THE FACTORY | ✅ `tests/thefactory/` (`precogn.org/thefactory/` page + `structory.ai/thefactory/demo/` fictional walkthrough, no real payment triggered) | ⛔ no `pwa.thefactory` entry | ⛔ `structory.ai/thefactory/addon/` → 404, no add-on exists | ⛔ not applicable |
+
+**Add-on testing boundary** (deliberate, Google-account demos can't run in CI): only the public
+marketing page, privacy/terms links and naming are checked — never the actual Google Sheets
+connection, which needs a real signed-in account.
+
+**End-to-end signature walkthrough** (email verification, Sign click, confirmation screen, and
+the click→confirmation delay that caused a real production incident on 2026-11-08): prepared
+separately, gated on an explicit go-ahead for sending real production emails — see Redmine #152.
+
+## What is covered (static checks, every Main/App declination)
+
 - the page loads without a console error
 - no horizontal overflow at a 390px viewport
 - the page's language (FR/EN) isn't mixed with the other
-
-A connected walkthrough (the demo itself, the "Reset demo" action) is deliberately **not**
-included yet: the public demo pages currently require a Google sign-in before reaching the demo
-itself, which is a product gap (tracked separately), not something this suite works around.
+- a safe key action where one exists and is stable (reset, a toggle, a short guided flow) — never
+  invented, never a button that sends a real email, charges a real payment, or calls a real AI
 
 ## Running locally
 
@@ -30,12 +51,17 @@ regenerated on every run, never committed.
 `.github/workflows/demos.yml` runs the suite nightly (cron) and on every pull request that
 touches `tests/`, `playwright.config.js` or the workflow itself. The GitHub Actions runner is
 isolated from our infrastructure: no secret is used or needed, only public demo organizations
-(`smcdemo`, `jdbdemo`, `comptademo`, `comptacoprodemo`, `briqueteriedemo`, …) are ever touched.
+(`smcdemo`, `jdbdemo`, `comptademo`, `comptacoprodemo`, `greendemo`, `briqueteriedemo`, …) are
+ever touched. A failed nightly run opens or updates a GitHub issue in this repo — never a Redmine
+ticket or config change.
 
 ## Adding a demo
 
-One folder per demo under `tests/<demo>/`, one spec file per concern. Reuse the helpers in
-`tests/helpers.js` (overflow check, FR/EN mixed-text heuristic) rather than duplicating them.
+One folder per module under `tests/<module>/`, one spec file per declination
+(`<module>.spec.js` for Main, `app.spec.js`, `addon.spec.js`, `game.spec.js`). Reuse the helpers
+in `tests/helpers.js` (`sansDebordementHorizontal`, `texteMelange`, `cadreContenu`/`texteVisible`
+for apps rendered inside nested iframes, `verifierPwaInstallable` for App declinations) rather
+than duplicating them. Update the matrix above in the same PR.
 
 ---
 
@@ -44,17 +70,40 @@ One folder per demo under `tests/<demo>/`, one spec file per concern. Reuse the 
 Tests automatiques, déterministes, des **démos publiques** PreCogn / Structory — Playwright
 seul, aucun modèle de langage ni secret à l'exécution (Redmine #152, parent #140).
 
-## Ce qui est couvert
+## Matrice de couverture — module × déclinaison
 
-Vérifications statiques, sans connexion :
+Chaque case ci-dessous est soit un vrai test qui passe, soit explicitement marquée « non
+applicable » avec la raison précise — jamais une case verte sans rien derrière. Vérifiée en
+direct le 08/11/2026 ; une déclinaison pourra être ajoutée plus tard pour un module dès qu'elle
+existera vraiment.
+
+| Module | Main (démo publique) | Appli (PWA) | Add-on | Game |
+|---|---|---|---|---|
+| SMC | ✅ `tests/smc/` | ⛔ aucune entrée `pwa.smc` dans `modules.json` (sites-internet) | ⚠️ `structory.ai/smc/addon/` existe (200), pas encore testé (prochaine PR) | ⛔ non applicable |
+| JdB | ✅ `tests/jdb/` | ⛔ aucune entrée `pwa.jdb` | ⛔ `structory.ai/jdb/addon/` → 404, aucun add-on n'existe | ⛔ non applicable |
+| Compta | ✅ `tests/compta/` | ✅ `tests/compta/app.spec.js` | ⛔ `structory.ai/compta/addon/` → 404, aucun add-on n'existe | ⚠️ `structory.ai/game/` existe mais son rattachement précis à Compta n'est pas confirmé — pas encore testé |
+| Compta Copro | ✅ `tests/comptacopro/` | ✅ `tests/comptacopro/app.spec.js` | ⚠️ `structory.ai/comptacopro/addon/` existe (200), pas encore testé (prochaine PR) | ⛔ non applicable |
+| Green | ✅ `tests/green/` | ⛔ aucune entrée `pwa.green` | ⚠️ `structory.ai/green/addon/` existe (200), pas encore testé (prochaine PR) | ⛔ non applicable |
+| Briqueterie | ✅ `tests/briqueterie/` (coordonné avec A15, qui couvre les tests profonds en CI dans le dépôt `briqueterie`) | ⛔ aucune entrée `pwa.briqueterie` | ⛔ `structory.ai/briqueterie/addon/` → 404, aucun add-on n'existe | ⚠️ le monde « runner » de la propre démo Briqueterie est lui-même un jeu, mais distinct de `structory.ai/game/` — pas retesté ici, déjà couvert dans Main |
+| THE FACTORY | ✅ `tests/thefactory/` (page `precogn.org/thefactory/` + parcours fictif `structory.ai/thefactory/demo/`, aucun paiement réel déclenché) | ⛔ aucune entrée `pwa.thefactory` | ⛔ `structory.ai/thefactory/addon/` → 404, aucun add-on n'existe | ⛔ non applicable |
+
+**Limite volontaire du test Add-on** (les démos à compte Google ne peuvent pas tourner en CI) :
+seules la page publique, les liens confidentialité/conditions et le nom/la marque sont vérifiés —
+jamais la vraie connexion Google Sheets, qui exige un compte réel.
+
+**Parcours de bout en bout de la signature** (vérification e-mail, clic Signer, écran de
+confirmation, et le délai clic→confirmation à l'origine d'un vrai incident en production le
+08/11/2026) : préparé à part, soumis à un accord explicite avant tout envoi de vrai e-mail en
+production — voir Redmine #152.
+
+## Ce qui est couvert (vérifications statiques, chaque déclinaison Main/Appli)
+
 - la page charge sans erreur console
 - aucun débordement horizontal à 390px de large
 - la langue de la page (FR/EN) n'est pas mélangée avec l'autre
-
-Un parcours connecté (la démo elle-même, l'action « Réinitialiser la démo ») n'est volontairement
-**pas** encore inclus : les pages de démo publiques exigent actuellement une connexion Google
-avant d'atteindre la démo elle-même, ce qui est un écart produit (suivi à part), pas quelque
-chose que cette suite contourne.
+- une action clé sûre là où elle existe et reste stable (réinitialiser, basculer un affichage, un
+  court parcours guidé) — jamais inventée, jamais un bouton qui envoie un vrai e-mail, débite un
+  vrai paiement ou appelle une vraie IA
 
 ## Lancer en local
 
@@ -73,10 +122,15 @@ ignorés par git — regénérés à chaque exécution, jamais commités.
 touche `tests/`, `playwright.config.js` ou le workflow lui-même. Le runner GitHub Actions est
 isolé de notre infrastructure : aucun secret n'est utilisé ni nécessaire, seules des
 organisations de démo publiques (`smcdemo`, `jdbdemo`, `comptademo`, `comptacoprodemo`,
-`briqueteriedemo`, …) sont jamais touchées.
+`greendemo`, `briqueteriedemo`, …) sont jamais touchées. Un passage nocturne en échec ouvre ou
+met à jour une issue GitHub dans ce dépôt — jamais un ticket Redmine ni une modification de
+configuration.
 
 ## Ajouter une démo
 
-Un dossier par démo sous `tests/<demo>/`, un fichier de spec par sujet. Réutiliser les
-fonctions de `tests/helpers.js` (débordement, heuristique FR/EN mélangé) plutôt que de les
-dupliquer.
+Un dossier par module sous `tests/<module>/`, un fichier de spec par déclinaison
+(`<module>.spec.js` pour Main, `app.spec.js`, `addon.spec.js`, `game.spec.js`). Réutiliser les
+fonctions de `tests/helpers.js` (`sansDebordementHorizontal`, `texteMelange`,
+`cadreContenu`/`texteVisible` pour les applis rendues dans des iframes imbriquées,
+`verifierPwaInstallable` pour la déclinaison Appli) plutôt que de les dupliquer. Mettre à jour la
+matrice ci-dessus dans la même PR.
