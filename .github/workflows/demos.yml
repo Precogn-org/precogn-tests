@@ -3,6 +3,12 @@ name: Démos publiques
 on:
   schedule:
     - cron: '17 2 * * *'   # nocturne, decale de l'heure ronde (02:17 UTC)
+  push:
+    branches: [main]
+    paths:
+      - 'tests/**'
+      - 'playwright.config.js'
+      - '.github/workflows/demos.yml'
   pull_request:
     paths:
       - 'tests/**'
