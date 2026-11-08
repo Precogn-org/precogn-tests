@@ -19,11 +19,11 @@ test.describe('JdB — démo connectée (sans compte, lecture seule)', () => {
     expect(erreurs, 'aucune erreur console attendue').toEqual([]);
   });
 
-  test('aucun débordement horizontal à 390 px', async ({ page }, testInfo) => {
-    // Défaut connu, NON contourné : ~9px de débordement dus à la bannière Google "application
-    // créée par un utilisateur Apps Script" (disparaît une fois l'app vérifiée par Google -- hors
-    // de ce dépôt), voir issue #6. Échec attendu sur mobile-390px seulement.
-    test.fail(testInfo.project.name === 'mobile-390px', 'bannière Apps Script non vérifiée, issue #6');
+  test('aucun débordement horizontal à 390 px', async ({ page }) => {
+    // Constaté UNE FOIS en local (~9px, bannière Google "application non vérifiée" -- voir issue
+    // #6) mais NON reproduit sur le runner CI (banière absente selon IP/compte Google) : pas assez
+    // stable pour un test.fail() déterministe. Laissé en test normal ; si ça redevient rouge en CI,
+    // c'est un signal réel à traiter, pas un faux positif à ignorer.
     await page.goto(URL_DEMO, { waitUntil: 'networkidle' });
     const cadre = await cadreContenu(page);
     await cadre.getByText('JOURNAL DE BANQUE', { exact: false }).first().waitFor({ timeout: 15000 });
