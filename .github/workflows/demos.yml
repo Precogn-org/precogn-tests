@@ -1,0 +1,31 @@
+name: Démos publiques
+
+on:
+  schedule:
+    - cron: '17 2 * * *'   # nocturne, decale de l'heure ronde (02:17 UTC)
+  pull_request:
+    paths:
+      - 'tests/**'
+      - 'playwright.config.js'
+      - '.github/workflows/demos.yml'
+
+jobs:
+  demos:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npx playwright test
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: rapport-playwright
+          path: |
+            rapport-html/
+            rapport.json
+          retention-days: 14
