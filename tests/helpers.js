@@ -55,4 +55,28 @@ async function texteVisible(page) {
   return cadre.locator('body').innerText();
 }
 
-module.exports = { sansDebordementHorizontal, texteMelange, texteVisible, cadreContenu };
+/** Déclinaison APP (PWA) d'un module (voir pwa.<module> dans modules.json de sites-internet) :
+ * lit le manifeste lié par <link rel="manifest">, vérifie les champs minimaux d'installabilité
+ * (nom, icônes, start_url, affichage autonome) et que le service worker s'enregistre réellement
+ * (pas seulement présent dans le HTML). Lève si le manifeste est absent/invalide ou introuvable. */
+async function verifierPwaInstallable(page) {
+  const hrefManifeste = await page.locator('link[rel="manifest"]').getAttribute('href');
+  if (!hrefManifeste) throw new Error('aucune balise <link rel="manifest"> trouvée');
+  const manifeste = await page.evaluate(async (href) => {
+    const r = await fetch(href);
+    if (!r.ok) throw new Error(`manifeste HTTP ${r.status}`);
+    return r.json();
+  }, hrefManifeste);
+  const manque = ['name', 'start_url', 'display'].filter(c => !manifeste[c]);
+  if (manque.length) throw new Error(`champs manquants dans le manifeste : ${manque.join(', ')}`);
+  if (!Array.isArray(manifeste.icons) || manifeste.icons.length === 0) throw new Error('aucune icône dans le manifeste');
+  if (manifeste.display !== 'standalone' && manifeste.display !== 'fullscreen' && manifeste.display !== 'minimal-ui') {
+    throw new Error(`display "${manifeste.display}" non installable (attendu standalone/fullscreen/minimal-ui)`);
+  }
+  await page.waitForFunction(() => 'serviceWorker' in navigator, null, { timeout: 5000 });
+  const swPret = await page.evaluate(() => navigator.serviceWorker.ready.then(() => true).catch(() => false));
+  if (!swPret) throw new Error('le service worker ne s\'est jamais activé (navigator.serviceWorker.ready)');
+  return manifeste;
+}
+
+module.exports = { sansDebordementHorizontal, texteMelange, texteVisible, cadreContenu, verifierPwaInstallable };
