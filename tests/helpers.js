@@ -79,4 +79,32 @@ async function verifierPwaInstallable(page) {
   return manifeste;
 }
 
-module.exports = { sansDebordementHorizontal, texteMelange, texteVisible, cadreContenu, verifierPwaInstallable };
+/** Déclinaison ADDON (Google Sheets) : limite de test volontaire (Redmine #152, demande
+ * larose75 08/11/2026) -- une démo à compte Google ne peut pas tourner en CI, donc seule la page
+ * PUBLIQUE de présentation est vérifiée (jamais la vraie connexion Sheets). Vérifie le titre
+ * attendu, la mention de marque Google LLC (transparence requise par Google Workspace
+ * Marketplace), et que les liens confidentialité/conditions pointent vers une vraie page (200),
+ * pas seulement qu'ils existent dans le DOM. */
+async function verifierPageAddonPublique(page, url, titreAttendu) {
+  const erreurs = [];
+  page.on('pageerror', e => erreurs.push(e.message));
+  page.on('console', msg => { if (msg.type() === 'error') erreurs.push(msg.text()); });
+  const reponse = await page.goto(url);
+  if (reponse.status() >= 400) throw new Error(`code HTTP ${reponse.status()} pour ${url}`);
+  if (erreurs.length) throw new Error(`erreurs console : ${erreurs.join(', ')}`);
+  const h1 = (await page.locator('h1').first().innerText().catch(() => '')).trim();
+  if (h1 !== titreAttendu) throw new Error(`h1 "${h1}" != attendu "${titreAttendu}"`);
+  const texte = await page.locator('body').innerText();
+  if (!texte.includes('Google LLC')) throw new Error('mention de marque Google LLC absente');
+  const debordants = await sansDebordementHorizontal(page);
+  if (debordants.length) throw new Error(`débordement à 390px : ${debordants.join(', ')}`);
+  for (const nom of ['Confidentialité', 'Conditions']) {
+    const href = await page.getByRole('link', { name: nom, exact: true }).first().getAttribute('href');
+    if (!href) throw new Error(`lien "${nom}" introuvable`);
+    const urlAbsolue = new URL(href, page.url()).toString();
+    const r = await page.request.get(urlAbsolue);
+    if (r.status() >= 400) throw new Error(`lien "${nom}" (${urlAbsolue}) répond ${r.status()}`);
+  }
+}
+
+module.exports = { sansDebordementHorizontal, texteMelange, texteVisible, cadreContenu, verifierPwaInstallable, verifierPageAddonPublique };

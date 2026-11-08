@@ -11,11 +11,11 @@ declination can be added later for a module once it genuinely exists.
 
 | Module | Main (public demo) | App (PWA) | Add-on | Game |
 |---|---|---|---|---|
-| SMC | ✅ `tests/smc/` | ⛔ no `pwa.smc` entry in `modules.json` (sites-internet) | ⚠️ `structory.ai/smc/addon/` exists (200), not yet tested (next PR) | ⛔ not applicable |
+| SMC | ✅ `tests/smc/` | ⛔ no `pwa.smc` entry in `modules.json` (sites-internet) | ✅ `tests/smc/addon.spec.js` (public page only, no Google account) | ⛔ not applicable |
 | JdB | ✅ `tests/jdb/` | ⛔ no `pwa.jdb` entry | ⛔ `structory.ai/jdb/addon/` → 404, no add-on exists | ⛔ not applicable |
 | Compta | ✅ `tests/compta/` | ✅ `tests/compta/app.spec.js` | ⛔ `structory.ai/compta/addon/` → 404, no add-on exists | ⚠️ `tests/game/` tests `structory.ai/game/` (load, 390px) but its attachment to Compta specifically is unconfirmed (content didn't vary by `orgId` in a live check) — kept in a neutral `tests/game/` folder, not forced under this module |
-| Compta Copro | ✅ `tests/comptacopro/` | ✅ `tests/comptacopro/app.spec.js` | ⚠️ `structory.ai/comptacopro/addon/` exists (200), not yet tested (next PR) | ⛔ not applicable |
-| Green | ✅ `tests/green/` | ⛔ no `pwa.green` entry | ⚠️ `structory.ai/green/addon/` exists (200), not yet tested (next PR) | ⛔ not applicable |
+| Compta Copro | ✅ `tests/comptacopro/` | ✅ `tests/comptacopro/app.spec.js` | ✅ `tests/comptacopro/addon.spec.js` (public page only) | ⛔ not applicable |
+| Green | ✅ `tests/green/` | ⛔ no `pwa.green` entry | ✅ `tests/green/addon.spec.js` (public page only) | ⛔ not applicable |
 | Briqueterie | ✅ `tests/briqueterie/` (coordinated with A15, who covers deep CI tests in the `briqueterie` repo) | ⛔ no `pwa.briqueterie` entry | ⛔ `structory.ai/briqueterie/addon/` → 404, no add-on exists | ⚠️ the "runner" world inside Briqueterie's own demo is itself a game, but distinct from `structory.ai/game/` — not re-tested here, already covered as part of Main |
 | THE FACTORY | ✅ `tests/thefactory/` (`precogn.org/thefactory/` page + `structory.ai/thefactory/demo/` fictional walkthrough, no real payment triggered) | ⛔ no `pwa.thefactory` entry | ⛔ `structory.ai/thefactory/addon/` → 404, no add-on exists | ⛔ not applicable |
 
@@ -79,11 +79,11 @@ existera vraiment.
 
 | Module | Main (démo publique) | Appli (PWA) | Add-on | Game |
 |---|---|---|---|---|
-| SMC | ✅ `tests/smc/` | ⛔ aucune entrée `pwa.smc` dans `modules.json` (sites-internet) | ⚠️ `structory.ai/smc/addon/` existe (200), pas encore testé (prochaine PR) | ⛔ non applicable |
+| SMC | ✅ `tests/smc/` | ⛔ aucune entrée `pwa.smc` dans `modules.json` (sites-internet) | ✅ `tests/smc/addon.spec.js` (page publique seulement, aucun compte Google) | ⛔ non applicable |
 | JdB | ✅ `tests/jdb/` | ⛔ aucune entrée `pwa.jdb` | ⛔ `structory.ai/jdb/addon/` → 404, aucun add-on n'existe | ⛔ non applicable |
 | Compta | ✅ `tests/compta/` | ✅ `tests/compta/app.spec.js` | ⛔ `structory.ai/compta/addon/` → 404, aucun add-on n'existe | ⚠️ `tests/game/` teste `structory.ai/game/` (chargement, 390px) mais son rattachement précis à Compta n'est pas confirmé (contenu identique quel que soit `orgId` en vérification directe) — gardé dans un dossier neutre `tests/game/`, pas forcé sous ce module |
-| Compta Copro | ✅ `tests/comptacopro/` | ✅ `tests/comptacopro/app.spec.js` | ⚠️ `structory.ai/comptacopro/addon/` existe (200), pas encore testé (prochaine PR) | ⛔ non applicable |
-| Green | ✅ `tests/green/` | ⛔ aucune entrée `pwa.green` | ⚠️ `structory.ai/green/addon/` existe (200), pas encore testé (prochaine PR) | ⛔ non applicable |
+| Compta Copro | ✅ `tests/comptacopro/` | ✅ `tests/comptacopro/app.spec.js` | ✅ `tests/comptacopro/addon.spec.js` (page publique seulement) | ⛔ non applicable |
+| Green | ✅ `tests/green/` | ⛔ aucune entrée `pwa.green` | ✅ `tests/green/addon.spec.js` (page publique seulement) | ⛔ non applicable |
 | Briqueterie | ✅ `tests/briqueterie/` (coordonné avec A15, qui couvre les tests profonds en CI dans le dépôt `briqueterie`) | ⛔ aucune entrée `pwa.briqueterie` | ⛔ `structory.ai/briqueterie/addon/` → 404, aucun add-on n'existe | ⚠️ le monde « runner » de la propre démo Briqueterie est lui-même un jeu, mais distinct de `structory.ai/game/` — pas retesté ici, déjà couvert dans Main |
 | THE FACTORY | ✅ `tests/thefactory/` (page `precogn.org/thefactory/` + parcours fictif `structory.ai/thefactory/demo/`, aucun paiement réel déclenché) | ⛔ aucune entrée `pwa.thefactory` | ⛔ `structory.ai/thefactory/addon/` → 404, aucun add-on n'existe | ⛔ non applicable |
 
