@@ -25,4 +25,24 @@ function texteMelange(texteVisible, langueAttendue) {
   return false;
 }
 
-module.exports = { sansDebordementHorizontal, texteMelange };
+/** Cadre réel d'une démo : certaines (SMC) sont une SPA directe (le contenu est dans la page
+ * hôte) ; d'autres (JdB, Compta -- Apps Script) rendent le leur dans un ou plusieurs iframes
+ * imbriqués (googleusercontent.com, cross-origin). Descend tant qu'un iframe existe dans le cadre
+ * courant, et renvoie le dernier cadre (Page ou FrameLocator, même API `.locator`/`.getByText`) --
+ * à utiliser pour localiser un élément OU lire le texte, jamais le body vide de la page hôte.
+ * Suppose que `page.goto` a déjà attendu `networkidle` (les iframes sont alors déjà attachés). */
+async function cadreContenu(page) {
+  let cadre = page;
+  for (;;) {
+    const nbIframes = await cadre.locator('iframe').count().catch(() => 0);
+    if (nbIframes === 0) return cadre;
+    cadre = cadre.frameLocator('iframe').first();
+  }
+}
+
+async function texteVisible(page) {
+  const cadre = await cadreContenu(page);
+  return cadre.locator('body').innerText();
+}
+
+module.exports = { sansDebordementHorizontal, texteMelange, texteVisible, cadreContenu };
