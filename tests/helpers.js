@@ -27,13 +27,23 @@ function texteMelange(texteVisible, langueAttendue) {
 
 /** Cadre réel d'une démo : certaines (SMC) sont une SPA directe (le contenu est dans la page
  * hôte) ; d'autres (JdB, Compta -- Apps Script) rendent le leur dans un ou plusieurs iframes
- * imbriqués (googleusercontent.com, cross-origin). Descend tant qu'un iframe existe dans le cadre
- * courant, et renvoie le dernier cadre (Page ou FrameLocator, même API `.locator`/`.getByText`) --
- * à utiliser pour localiser un élément OU lire le texte, jamais le body vide de la page hôte.
- * Suppose que `page.goto` a déjà attendu `networkidle` (les iframes sont alors déjà attachés). */
+ * imbriqués (googleusercontent.com, cross-origin) -- et certaines (Compta) embarquent EN PLUS un
+ * widget (chat PreCogn) dans sa propre iframe DANS le contenu réel : descendre aveuglément tant
+ * qu'un iframe existe irait trop loin, dans la coquille vide du widget. S'arrête dès que le cadre
+ * courant a lui-même un texte substantiel (son propre body, SANS compter celui d'un iframe
+ * descendant -- `innerText` ne traverse jamais les frontières d'iframe) ; ne descend que si le
+ * cadre courant est encore une coquille vide. Renvoie le dernier cadre (Page ou FrameLocator, même
+ * API `.locator`/`.getByText`) -- à utiliser pour localiser un élément OU lire le texte, jamais le
+ * body vide de la page hôte. Suppose que `page.goto` a déjà attendu `networkidle` ou un settle
+ * équivalent (les iframes sont alors déjà attachés). */
 async function cadreContenu(page) {
   let cadre = page;
   for (;;) {
+    const texte = await cadre.locator('body').innerText().catch(() => '');
+    // Seuil volontairement haut : le bandeau Google "application non vérifiée" (~90 caractères,
+    // présent sur la page hôte de JdB/Compta) ne doit JAMAIS faire croire que c'est le vrai
+    // contenu -- un vrai contenu de démo (JdB, Compta) dépasse largement 300 caractères.
+    if (texte.trim().length > 300) return cadre;
     const nbIframes = await cadre.locator('iframe').count().catch(() => 0);
     if (nbIframes === 0) return cadre;
     cadre = cadre.frameLocator('iframe').first();
