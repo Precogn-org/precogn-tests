@@ -39,6 +39,14 @@ build/Release
 
 # Dependency directories
 node_modules/
+
+# Playwright (Redmine #152) : rapports et artefacts, générés à chaque run, jamais commités.
+test-results/
+rapport-html/
+rapport.json
+playwright-report/
+blob-report/
+playwright/.cache/
 jspm_packages/
 
 # Snowpack dependency directory (https://snowpack.dev/)
