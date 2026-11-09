@@ -34,6 +34,20 @@ connection, which needs a real signed-in account.
 the click→confirmation delay that caused a real production incident on 2026-11-08): prepared
 separately, gated on an explicit go-ahead for sending real production emails — see Redmine #152.
 
+## PreSeed page (investor outreach)
+
+`tests/preseed/preseed.spec.js` covers `structory.ai/preseed/` (EN) and `structory.ai/fr/preseed/`
+(FR) — not a module, a single dedicated page, so it sits outside the matrix above. Six checks per
+language: traction figures are real (fetched from `/api/preseed/traction` directly, not just read
+off the DOM) and never 0; no table of repositories and no direct link to a named repository (only
+the generic organization link); every link on the page resolves 2xx; no common word from the other
+language appears in the visible text (a short, deliberately unambiguous function-word list per
+language, with an explicit exception list for shared proper nouns — Structory, BYOS, WhatsApp,
+PreCogn, GitHub, country/founder names); the EN|FR selector actually navigates and updates
+`aria-current`/`<html lang>`; the last collection timestamp is under 36h (the daily collection has
+its own cron, separate from this suite's nightly one — a stale timestamp here means that cron
+failed, surfaced the same way as any other nightly failure, see CI below).
+
 ## What is covered (static checks, every Main/App declination)
 
 - the page loads without a console error
@@ -109,6 +123,21 @@ jamais la vraie connexion Google Sheets, qui exige un compte réel.
 confirmation, et le délai clic→confirmation à l'origine d'un vrai incident en production le
 08/11/2026) : préparé à part, soumis à un accord explicite avant tout envoi de vrai e-mail en
 production — voir Redmine #152.
+
+## Page PreSeed (démarchage investisseurs)
+
+`tests/preseed/preseed.spec.js` couvre `structory.ai/preseed/` (EN) et `structory.ai/fr/preseed/`
+(FR) — pas un module, une seule page dédiée, donc hors de la matrice ci-dessus. Six vérifications
+par langue : les chiffres de traction sont réels (lus directement sur `/api/preseed/traction`, pas
+seulement sur le DOM) et jamais à 0 ; aucun tableau de dépôts ni lien direct vers un dépôt nommé
+(seul le lien générique vers l'organisation reste) ; tous les liens de la page répondent en 2xx ;
+aucun mot courant de l'autre langue dans le texte visible (liste courte et volontairement sans
+ambiguïté par langue, avec une liste d'exceptions explicite pour les noms propres partagés --
+Structory, BYOS, WhatsApp, PreCogn, GitHub, noms de pays/fondateur) ; le sélecteur EN|FR navigue
+réellement et met à jour `aria-current`/`<html lang>` ; l'horodatage de dernière collecte a moins
+de 36h (la collecte quotidienne a son propre cron, distinct de celui, nocturne, de cette suite --
+un horodatage périmé ici signale que ce cron-là a échoué, visible via la même alerte que tout autre
+échec nocturne, voir CI ci-dessous).
 
 ## Ce qui est couvert (vérifications statiques, chaque déclinaison Main/Appli)
 
