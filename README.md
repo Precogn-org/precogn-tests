@@ -24,8 +24,15 @@ marketing page, privacy/terms links and naming are checked — never the actual 
 connection, which needs a real signed-in account.
 
 **End-to-end signature walkthrough** (email verification, Sign click, confirmation screen, and
-the click→confirmation delay that caused a real production incident on 2026-11-08): prepared
-separately, gated on an explicit go-ahead for sending real production emails — see Redmine #152.
+the click→confirmation delay that caused a real production incident on 2026-11-08): now written,
+`tests/signature-e2e/e2e-signature.manual.spec.js` — but **never** picked up by the normal suite
+or the nightly run (`testIgnore` in `playwright.config.js`): it sends a real email and consumes a
+single-use signing token. Manual only, with a fresh token each time: `npm run test:e2e-signature`
+(uses `playwright.e2e-signature.config.js`), reading `E2E_SIGNATURE_URL`/`E2E_SIGNATURE_EMAIL`
+(required) and `E2E_SIGNATURE_CODE` (optional — without it, the test stops cleanly right after
+requesting a code, token still unconsumed) from the environment, never hardcoded. Measures the
+click "Sign" → confirmation-screen delay, capped at 10s (the threshold proposed after the
+2026-11-08 incident).
 
 ## What is covered (static checks, every Main/App declination)
 
@@ -93,8 +100,15 @@ jamais la vraie connexion Google Sheets, qui exige un compte réel.
 
 **Parcours de bout en bout de la signature** (vérification e-mail, clic Signer, écran de
 confirmation, et le délai clic→confirmation à l'origine d'un vrai incident en production le
-08/11/2026) : préparé à part, soumis à un accord explicite avant tout envoi de vrai e-mail en
-production — voir Redmine #152.
+08/11/2026) : désormais écrit, `tests/signature-e2e/e2e-signature.manual.spec.js` -- mais
+**jamais** ramassé par la suite normale ni par le passage nocturne (`testIgnore` dans
+`playwright.config.js`) : il envoie un vrai e-mail et consomme un jeton de signature à usage
+unique. Geste manuel uniquement, avec un jeton frais à chaque fois : `npm run
+test:e2e-signature` (utilise `playwright.e2e-signature.config.js`), lit `E2E_SIGNATURE_URL`/
+`E2E_SIGNATURE_EMAIL` (obligatoires) et `E2E_SIGNATURE_CODE` (optionnel -- sans lui, le test
+s'arrête proprement juste après avoir demandé le code, jeton pas encore consommé) depuis
+l'environnement, jamais en dur. Mesure le délai clic « Signer » → écran de confirmation,
+plafonné à 10s (seuil proposé à la suite de l'incident du 08/11/2026).
 
 ## Ce qui est couvert (vérifications statiques, chaque déclinaison Main/Appli)
 
