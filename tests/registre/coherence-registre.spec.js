@@ -82,6 +82,11 @@ test.describe('Registre des démos — cohérence (lecture seule, sans clé)', (
       const entree = orgs.find(o => o.module === module && o.statut === 'officielle');
       expect(entree, `aucune organisation officielle pour le module ${module} dans le registre`).toBeTruthy();
       const variantes = entree.variantes && entree.variantes.length ? entree.variantes : [entree];
+      // Un module à plusieurs variantes (ex. compta : fr + en) charge plusieurs pages en
+      // séquence dans le MÊME test -- le timeout par défaut (30s) suffit à peine pour une seule
+      // variante sur un service réel parfois lent ; élargi proportionnellement (constaté en
+      // direct : 2 variantes dépassaient 30s de justesse, pas une vraie régression).
+      test.setTimeout(variantes.length * 20_000 + 10_000);
       for (const v of variantes) {
         const url = `https://structory.ai/demo/${module}?lang=${v.langue}`;
         await page.goto(url, { waitUntil: attendre });
