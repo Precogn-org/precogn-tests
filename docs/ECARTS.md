@@ -24,7 +24,9 @@ dépôt `sites-internet`, et de l'accueil de chaque module) :
 | Compta | testé | testé (`tests/compta/app.spec.js`, manifeste + service worker vérifiés sur `/compta-app/`) | non applicable -- pas d'add-on connu pour Compta | non applicable |
 | Compta Copro | testé | testé (`tests/comptacopro/app.spec.js`, `/comptacopro-app/`) | non applicable -- pas d'add-on connu pour Compta Copro | non applicable |
 | Green | testé | non applicable -- aucune entrée `pwa.green` | non applicable | non applicable |
-| Briqueterie | testé (`tests/briqueterie/`, coordination A15) | non applicable -- aucune entrée `pwa.briqueterie`, page directe sans manifeste détecté | non applicable | « Game » (`structory.ai/game/`) est un produit séparé, pas une déclinaison de la Briqueterie -- non applicable ici |
+| Le coureur | testé (`tests/lecoureur/`, coordination A15) | non applicable -- aucune entrée PWA, page directe sans manifeste détecté | non applicable | la démo de ce module est elle-même un jeu, distincte de « Game » (`structory.ai/game/`) -- non applicable ici |
+| L'emprunt | testé (`tests/lemprunt/`, coordination A15) | non applicable -- aucune entrée PWA, page directe sans manifeste détecté | non applicable | non applicable |
+| CTI (Connect the Internet) | non testable -- aucune démo publique (dépôt `Precogn-org/precogn-connect`, privé) | non testable, même raison | non testable, même raison | non testable, même raison |
 
 ## Correction d'un signalement précédent (08/11/2026)
 
