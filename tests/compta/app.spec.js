@@ -1,6 +1,7 @@
 // Déclinaison APP (PWA) du module Compta -- voir pwa.compta dans modules.json (sites-internet).
 // Seuls les modules avec une entrée dans cette rubrique ont une déclinaison APP ; les autres
-// (SMC, JdB, Green, Briqueterie) n'en ont pas, consigné en non applicable dans docs/ECARTS.md.
+// (SMC, JdB, Green, Le coureur, L'emprunt, THE FACTORY) n'en ont pas, consigné en non applicable
+// dans docs/ECARTS.md.
 const { test, expect } = require('@playwright/test');
 const { sansDebordementHorizontal, verifierPwaInstallable } = require('../helpers');
 

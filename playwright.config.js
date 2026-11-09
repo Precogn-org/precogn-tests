@@ -6,6 +6,10 @@ const { defineConfig, devices } = require('@playwright/test');
 
 module.exports = defineConfig({
   testDir: './tests',
+  // tests/signature-e2e/ : parcours réel de signature, envoie un vrai e-mail et consomme un
+  // jeton à usage unique -- JAMAIS ramassé ici (CI, nocturne), geste manuel uniquement via
+  // `npm run test:e2e-signature` (voir playwright.e2e-signature.config.js et l'en-tête du spec).
+  testIgnore: ['**/signature-e2e/**'],
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 1 : 0,

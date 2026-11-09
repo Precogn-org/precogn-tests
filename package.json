@@ -2,7 +2,8 @@
   "name": "precogn-tests",
   "private": true,
   "scripts": {
-    "test": "playwright test"
+    "test": "playwright test",
+    "test:e2e-signature": "playwright test --config=playwright.e2e-signature.config.js"
   },
   "devDependencies": {
     "@playwright/test": "^1.49.0"
