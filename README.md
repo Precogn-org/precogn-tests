@@ -55,6 +55,20 @@ PreCogn, GitHub, country/founder names); the EN|FR selector actually navigates a
 its own cron, separate from this suite's nightly one — a stale timestamp here means that cron
 failed, surfaced the same way as any other nightly failure, see CI below).
 
+## Demo registry consistency
+
+`tests/registre/coherence-registre.spec.js` checks the public `/api/demo/orgs` registry itself,
+cross-cutting rather than per-module: no duplicate `orgId`, every legacy ("héritée") entry points
+to an official one that actually exists, and — driven live off that same registry, not a hardcoded
+list — every officially listed organization for Compta, Compta Copro, Green, JdB and SMC really
+resolves to real content on its public demo. **Known, documented limit, not worked around**:
+whether an `orgId` has a backend registered in Docling itself can only be checked directly via
+`GET /api/docling/orgs`/`GET /api/docling/connectors`, both protected by a service key (confirmed
+live: 401 without one) — this suite cannot and does not attempt to read that. La Briqueterie (and
+so Le coureur/L'emprunt/THE FACTORY) is intentionally excluded from the per-module check above: its
+demo lives at a different URL entirely (`precogn.org/briqueterie/`), not through this registry's
+`/demo/<module>` mechanism.
+
 ## What is covered (static checks, every Main/App declination)
 
 - the page loads without a console error
@@ -152,6 +166,20 @@ réellement et met à jour `aria-current`/`<html lang>` ; l'horodatage de derni�
 de 36h (la collecte quotidienne a son propre cron, distinct de celui, nocturne, de cette suite --
 un horodatage périmé ici signale que ce cron-là a échoué, visible via la même alerte que tout autre
 échec nocturne, voir CI ci-dessous).
+
+## Cohérence du registre des démos
+
+`tests/registre/coherence-registre.spec.js` vérifie le registre public `/api/demo/orgs`
+lui-même, transversal plutôt que par module : aucun `orgId` dupliqué, chaque entrée héritée
+pointe vers une organisation officielle qui existe vraiment, et -- piloté en direct par ce même
+registre, pas par une liste codée en dur -- chaque organisation officielle de Compta, Compta
+Copro, Green, JdB et SMC résout réellement du contenu sur sa démo publique. **Limite connue,
+documentée, pas contournée** : savoir si un `orgId` a un backend enregistré dans Docling lui-même
+ne peut se vérifier directement que via `GET /api/docling/orgs`/`GET /api/docling/connectors`,
+tous deux protégés par une clé de service (vérifié en direct : 401 sans clé) -- cette suite ne
+peut pas et ne tente pas de le lire. La Briqueterie (donc Le coureur/L'emprunt/THE FACTORY) est
+volontairement exclue de la vérification par module ci-dessus : sa démo vit à une URL entièrement
+différente (`precogn.org/briqueterie/`), pas via le mécanisme `/demo/<module>` de ce registre.
 
 ## Ce qui est couvert (vérifications statiques, chaque déclinaison Main/Appli)
 
