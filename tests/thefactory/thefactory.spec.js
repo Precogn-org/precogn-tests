@@ -1,8 +1,11 @@
-// Module THE FACTORY (7e module, pas une déclinaison -- correction larose75 08/11/2026). Page
-// vitrine precogn.org/thefactory/ (paiement réel Stripe, jamais testée automatiquement : on
+// Module THE FACTORY (correction larose75 08/11/2026 : 9 modules au total, pas une déclinaison).
+// Page vitrine precogn.org/thefactory/ (paiement réel Stripe, jamais testée automatiquement : on
 // vérifie seulement sa présence) et démo publique structory.ai/thefactory/demo/, parcours fictif
 // explicitement marqué "SAMPLE"/"No payment, nothing sent or stored" -- aucune donnée réelle,
-// aucun paiement déclenché par ces tests.
+// aucun paiement déclenché par ces tests. THE FACTORY est aussi accessible via le moteur commun
+// partagé avec Le coureur et L'emprunt (coordination A15, qui couvre les tests profonds en CI de
+// son côté sur ce moteur) -- boutons explicitement labellisés "(démo)"/"(simulé)" là aussi,
+// vérifié en direct avant de les cliquer.
 const { test, expect } = require('@playwright/test');
 const { sansDebordementHorizontal, texteMelange } = require('../helpers');
 
@@ -79,5 +82,23 @@ test.describe('THE FACTORY — démo publique (parcours fictif, sans paiement)',
     await expect(page.getByRole('button', { name: /activate my month/i })).toBeVisible();
     // Jamais cliqué plus loin ici : au-delà, la démo peut appeler des mécanismes non déterministes
     // (Cockpit) -- "Sign up/Agreement/Activation" suffit à prouver le parcours fonctionnel.
+  });
+});
+
+test.describe('THE FACTORY — via le moteur commun (entrée alternative)', () => {
+  const URL = 'https://precogn.org/briqueterie/?monde=factory&lang=fr';
+
+  test('inscrire → signer → activer progressent dans l\'ordre (boutons explicitement "démo"/"simulé")', async ({ page }) => {
+    await page.goto(URL);
+    const inscrire = page.locator('#actions button[data-action="inscrire"]');
+    const signer = page.locator('#actions button[data-action="signer"]');
+    const activer = page.locator('#actions button[data-action="activer"]');
+    await expect(inscrire).toBeEnabled();
+    await expect(signer).toBeDisabled();
+    await inscrire.click();
+    await expect(signer).toBeEnabled({ timeout: 10000 });
+    await expect(activer).toBeDisabled();
+    await signer.click();
+    await expect(activer).toBeEnabled({ timeout: 10000 });
   });
 });

@@ -6,8 +6,13 @@ language model and no secret at execution time (Redmine #152, parent #140).
 ## Coverage matrix — module × declination
 
 Every cell below is either a real, passing test or explicitly marked "not applicable" with the
-precise reason — never a green cell with nothing behind it. Verified live on 2026-11-08; a
+precise reason — never a green cell with nothing behind it. Verified live on 2026-11-09; a
 declination can be added later for a module once it genuinely exists.
+
+9 modules total: 5 from Structory (SMC, JdB, Compta, Compta Copro, Green) and 4 from PreCogn (Le
+coureur, L'emprunt, THE FACTORY, CTI). **La Briqueterie is not a module** — it's the shared engine
+hosting Le coureur, L'emprunt and THE FACTORY, reachable via its current URL parameter; it isn't
+tested as a module in its own right, only through each of those three.
 
 | Module | Main (public demo) | App (PWA) | Add-on | Game |
 |---|---|---|---|---|
@@ -16,8 +21,10 @@ declination can be added later for a module once it genuinely exists.
 | Compta | ✅ `tests/compta/` | ✅ `tests/compta/app.spec.js` | ⛔ `structory.ai/compta/addon/` → 404, no add-on exists | ⚠️ `tests/game/` tests `structory.ai/game/` (load, 390px) but its attachment to Compta specifically is unconfirmed (content didn't vary by `orgId` in a live check) — kept in a neutral `tests/game/` folder, not forced under this module |
 | Compta Copro | ✅ `tests/comptacopro/` | ✅ `tests/comptacopro/app.spec.js` | ✅ `tests/comptacopro/addon.spec.js` (public page only) | ⛔ not applicable |
 | Green | ✅ `tests/green/` | ⛔ no `pwa.green` entry | ✅ `tests/green/addon.spec.js` (public page only) | ⛔ not applicable |
-| Briqueterie | ✅ `tests/briqueterie/` (coordinated with A15, who covers deep CI tests in the `briqueterie` repo) | ⛔ no `pwa.briqueterie` entry | ⛔ `structory.ai/briqueterie/addon/` → 404, no add-on exists | ⚠️ the "runner" world inside Briqueterie's own demo is itself a game, but distinct from `structory.ai/game/` — not re-tested here, already covered as part of Main |
-| THE FACTORY | ✅ `tests/thefactory/` (`precogn.org/thefactory/` page + `structory.ai/thefactory/demo/` fictional walkthrough, no real payment triggered) | ⛔ no `pwa.thefactory` entry | ⛔ `structory.ai/thefactory/addon/` → 404, no add-on exists | ⛔ not applicable |
+| Le coureur | ✅ `tests/lecoureur/` (shared engine, reached via its current URL parameter — coordinated with A15, who covers deep CI tests in the `briqueterie` repo) | ⛔ no PWA entry | ⛔ no add-on exists | ⚠️ this module's own demo is itself a game, but distinct from the dedicated `structory.ai/game/` declination — not re-tested here, already covered as part of Main |
+| L'emprunt | ✅ `tests/lemprunt/` (shared engine, same coordination with A15) | ⛔ no PWA entry | ⛔ no add-on exists | ⛔ not applicable |
+| THE FACTORY | ✅ `tests/thefactory/` (`precogn.org/thefactory/` page + `structory.ai/thefactory/demo/` fictional walkthrough, no real payment triggered; also reachable and tested via the shared engine) | ⛔ no `pwa.thefactory` entry | ⛔ `structory.ai/thefactory/addon/` → 404, no add-on exists | ⛔ not applicable |
+| CTI (Connect the Internet) | ⛔ not testable — no public demo yet (repo `Precogn-org/precogn-connect`, private); `precogn.org/connect/` returns 200 but is only the generic PreCogn homepage, served identically for any unrecognized path (confirmed live, not a dedicated CTI page) | ⛔ not testable, same reason | ⛔ not testable, same reason | ⛔ not testable, same reason |
 
 **Add-on testing boundary** (deliberate, Google-account demos can't run in CI): only the public
 marketing page, privacy/terms links and naming are checked — never the actual Google Sheets
@@ -74,8 +81,13 @@ seul, aucun modèle de langage ni secret à l'exécution (Redmine #152, parent #
 
 Chaque case ci-dessous est soit un vrai test qui passe, soit explicitement marquée « non
 applicable » avec la raison précise — jamais une case verte sans rien derrière. Vérifiée en
-direct le 08/11/2026 ; une déclinaison pourra être ajoutée plus tard pour un module dès qu'elle
+direct le 09/11/2026 ; une déclinaison pourra être ajoutée plus tard pour un module dès qu'elle
 existera vraiment.
+
+9 modules en tout : 5 côté Structory (SMC, JdB, Compta, Compta Copro, Green) et 4 côté PreCogn
+(Le coureur, L'emprunt, THE FACTORY, CTI). **La Briqueterie n'est pas un module** — c'est le
+moteur commun qui héberge Le coureur, L'emprunt et THE FACTORY, atteignable via le paramètre de
+son URL actuelle ; elle n'est pas testée comme module en elle-même, seulement à travers ces trois-là.
 
 | Module | Main (démo publique) | Appli (PWA) | Add-on | Game |
 |---|---|---|---|---|
@@ -84,8 +96,10 @@ existera vraiment.
 | Compta | ✅ `tests/compta/` | ✅ `tests/compta/app.spec.js` | ⛔ `structory.ai/compta/addon/` → 404, aucun add-on n'existe | ⚠️ `tests/game/` teste `structory.ai/game/` (chargement, 390px) mais son rattachement précis à Compta n'est pas confirmé (contenu identique quel que soit `orgId` en vérification directe) — gardé dans un dossier neutre `tests/game/`, pas forcé sous ce module |
 | Compta Copro | ✅ `tests/comptacopro/` | ✅ `tests/comptacopro/app.spec.js` | ✅ `tests/comptacopro/addon.spec.js` (page publique seulement) | ⛔ non applicable |
 | Green | ✅ `tests/green/` | ⛔ aucune entrée `pwa.green` | ✅ `tests/green/addon.spec.js` (page publique seulement) | ⛔ non applicable |
-| Briqueterie | ✅ `tests/briqueterie/` (coordonné avec A15, qui couvre les tests profonds en CI dans le dépôt `briqueterie`) | ⛔ aucune entrée `pwa.briqueterie` | ⛔ `structory.ai/briqueterie/addon/` → 404, aucun add-on n'existe | ⚠️ le monde « runner » de la propre démo Briqueterie est lui-même un jeu, mais distinct de `structory.ai/game/` — pas retesté ici, déjà couvert dans Main |
-| THE FACTORY | ✅ `tests/thefactory/` (page `precogn.org/thefactory/` + parcours fictif `structory.ai/thefactory/demo/`, aucun paiement réel déclenché) | ⛔ aucune entrée `pwa.thefactory` | ⛔ `structory.ai/thefactory/addon/` → 404, aucun add-on n'existe | ⛔ non applicable |
+| Le coureur | ✅ `tests/lecoureur/` (moteur commun, atteint via le paramètre de son URL actuelle — coordonné avec A15, qui couvre les tests profonds en CI dans le dépôt `briqueterie`) | ⛔ aucune entrée PWA | ⛔ aucun add-on n'existe | ⚠️ la démo de ce module est elle-même un jeu, mais distincte de la déclinaison dédiée `structory.ai/game/` — pas retestée ici, déjà couverte dans Main |
+| L'emprunt | ✅ `tests/lemprunt/` (moteur commun, même coordination avec A15) | ⛔ aucune entrée PWA | ⛔ aucun add-on n'existe | ⛔ non applicable |
+| THE FACTORY | ✅ `tests/thefactory/` (page `precogn.org/thefactory/` + parcours fictif `structory.ai/thefactory/demo/`, aucun paiement réel déclenché ; aussi atteignable et testée via le moteur commun) | ⛔ aucune entrée `pwa.thefactory` | ⛔ `structory.ai/thefactory/addon/` → 404, aucun add-on n'existe | ⛔ non applicable |
+| CTI (Connect the Internet) | ⛔ non testable — aucune démo publique pour l'instant (dépôt `Precogn-org/precogn-connect`, privé) ; `precogn.org/connect/` répond 200 mais n'est que la page d'accueil générique de PreCogn, servie à l'identique pour n'importe quelle URL non reconnue (vérifié en direct, pas une page CTI dédiée) | ⛔ non testable, même raison | ⛔ non testable, même raison | ⛔ non testable, même raison |
 
 **Limite volontaire du test Add-on** (les démos à compte Google ne peuvent pas tourner en CI) :
 seules la page publique, les liens confidentialité/conditions et le nom/la marque sont vérifiés —
