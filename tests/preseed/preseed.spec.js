@@ -1,13 +1,13 @@
 // Page PreSeed (démarchage investisseurs), demande relayée par V00 (larose75), 6 points précis.
-// Pas de déclinaison App/Add-on/Game ici : une seule page publique, EN (/preseed/) et FR
-// (/fr/preseed/). Les chiffres de traction sont chargés en JS depuis /api/preseed/traction
+// Pas de déclinaison App/Add-on/Game ici : une seule page publique, EN (/investors/) et FR
+// (/fr/investors/). Les chiffres de traction sont chargés en JS depuis /api/preseed/traction
 // (repli local sur un instantané statique si l'API est indisponible, cf. le script de la page) --
 // on vérifie ici le JSON réellement servi, pas seulement son affichage.
 const { test, expect } = require('@playwright/test');
 
 const PAGES = [
-  { lang: 'en', url: 'https://structory.ai/preseed/' },
-  { lang: 'fr', url: 'https://structory.ai/fr/preseed/' },
+  { lang: 'en', url: 'https://structory.ai/investors/' },
+  { lang: 'fr', url: 'https://structory.ai/fr/investors/' },
 ];
 
 // Mots-outils très fréquents, choisis pour ne jamais apparaître comme mot entier dans l'autre
@@ -98,7 +98,7 @@ for (const { lang, url } of PAGES) {
 
     test('sélecteur EN|FR fonctionnel', async ({ page }) => {
       await page.goto(url, { waitUntil: 'load' });
-      const autre = lang === 'fr' ? { code: 'EN', href: '/preseed/' } : { code: 'FR', href: '/fr/preseed/' };
+      const autre = lang === 'fr' ? { code: 'EN', href: '/investors/' } : { code: 'FR', href: '/fr/investors/' };
       const lienActuel = page.locator(`nav.lang a[hreflang="${lang}"]`);
       const lienAutre = page.locator(`nav.lang a[hreflang="${autre.code.toLowerCase()}"]`);
       await expect(lienActuel).toHaveAttribute('aria-current', 'true');
