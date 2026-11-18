@@ -219,3 +219,13 @@ fonctions de `tests/helpers.js` (`sansDebordementHorizontal`, `texteMelange`,
 `cadreContenu`/`texteVisible` pour les applis rendues dans des iframes imbriquées,
 `verifierPwaInstallable` pour la déclinaison Appli) plutôt que de les dupliquer. Mettre à jour la
 matrice ci-dessus dans la même PR.
+
+## Garde-fous API Analyzor / LlmPrecogn
+
+La suite `tests/llmprecogn/context-security.spec.js` vérifie en boîte noire que les routes
+sensibles refusent les appels sans clé (`401`). Elle utilise Playwright APIRequestContext,
+sans ouvrir de navigateur ni lire de données d'organisation.
+
+- `npm run test:security:analyzor` : lance uniquement ces contrôles.
+- `ANALYZOR_BASE_URL=http://127.0.0.1:8000 npm run test:security:analyzor` : cible Analyzor local.
+- `npm test` inclut cette suite ; les contrôles sont ignorés si `ANALYZOR_BASE_URL` n'est pas défini.
