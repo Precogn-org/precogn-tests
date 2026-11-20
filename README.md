@@ -97,6 +97,14 @@ isolated from our infrastructure: no secret is used or needed, only public demo 
 ever touched. A failed nightly run opens or updates a GitHub issue in this repo — never a Redmine
 ticket or config change.
 
+**Daily report** (Redmine #152, first lot — "rapport quotidien"): `scripts/rapport-quotidien.js`
+reads the JSON reporter's output (`rapport.json`) and writes a green/red summary table (one row
+per module, pass/fail/skipped counts) to the run's job summary (`$GITHUB_STEP_SUMMARY`) on
+**every** run, not only on failure — visible directly on the GitHub Actions run page, no new
+infrastructure, no Redmine ticket. Full detail (screenshots, traces) stays in the
+`rapport-playwright` artifact already uploaded above. Tested in isolation with fabricated data
+(never a real `rapport.json`): `node scripts/rapport-quotidien.test.js`.
+
 ## Adding a demo
 
 One folder per module under `tests/<module>/`, one spec file per declination
@@ -210,6 +218,15 @@ organisations de démo publiques (`smcdemo`, `jdbdemo`, `comptademo`, `comptacop
 `greendemo`, `briqueteriedemo`, …) sont jamais touchées. Un passage nocturne en échec ouvre ou
 met à jour une issue GitHub dans ce dépôt — jamais un ticket Redmine ni une modification de
 configuration.
+
+**Rapport quotidien** (Redmine #152, premier lot) : `scripts/rapport-quotidien.js` lit la
+sortie du reporter JSON (`rapport.json`) et écrit un tableau résumé vert/rouge (une ligne par
+module, comptes réussis/échoués/ignorés) sur le résumé du run (`$GITHUB_STEP_SUMMARY`), à
+**chaque** passage, pas seulement en cas d'échec — visible directement sur la page du run
+GitHub Actions, aucune nouvelle infrastructure, aucun ticket Redmine. Le détail complet
+(captures d'écran, traces) reste dans l'artefact `rapport-playwright` déjà téléversé ci-dessus.
+Testé isolément avec des données fabriquées (jamais un vrai `rapport.json`) :
+`node scripts/rapport-quotidien.test.js`.
 
 ## Ajouter une démo
 

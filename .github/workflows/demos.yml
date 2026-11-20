@@ -45,6 +45,12 @@ jobs:
             rapport-html/
             rapport.json
           retention-days: 14
+      # Rapport quotidien (Redmine #152, premier lot) : résumé vert/rouge par module sur le
+      # résumé du run, CHAQUE passage (pas seulement un échec) -- jamais un ticket Redmine ni
+      # une modification de configuration.
+      - name: Rapport quotidien (résumé vert/rouge)
+        if: always()
+        run: node scripts/rapport-quotidien.js rapport.json >> "$GITHUB_STEP_SUMMARY"
       # Alerte visible uniquement pour le passage NOCTURNE programmé (jamais sur une PR, où
       # l'échec est déjà visible dans la PR elle-même) -- une issue GitHub, jamais Redmine ni une
       # modification de configuration (demande larose75 08/11/2026). Une seule issue à la fois
