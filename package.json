@@ -4,7 +4,8 @@
   "scripts": {
     "test": "playwright test && playwright test --config=playwright.security.config.js",
     "test:e2e-signature": "playwright test --config=playwright.e2e-signature.config.js",
-    "test:security:analyzor": "playwright test --config=playwright.security.config.js"
+    "test:security:analyzor": "playwright test --config=playwright.security.config.js",
+    "test:site": "playwright test tests/site --project=desktop-chromium --reporter=line"
   },
   "devDependencies": {
     "@playwright/test": "^1.49.0"
