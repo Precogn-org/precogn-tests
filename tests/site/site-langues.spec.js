@@ -77,10 +77,21 @@ function optionsSelecteur(html) {
   return [...m[1].matchAll(/<option[^>]*value="([^"]*)"/gi)].map((x) => x[1]);
 }
 
+/** Alternatives hreflang d'une page : { 'fr': '/fr/ce-que-fait-structory/', 'en': '/what-structory-does/', ... } (chemins normalises). Source de verite quand l'adresse change selon la langue (nom de page traduit). */
+function alternatives(html) {
+  const sortie = {};
+  for (const m of html.matchAll(/<link[^>]*rel="alternate"[^>]*>/gi)) {
+    const hl = /hreflang="([^"]+)"/i.exec(m[0]), hr = /href="([^"]+)"/i.exec(m[0]);
+    if (hl && hr) { try { sortie[hl[1].toLowerCase()] = new URL(hr[1], BASE).pathname.replace(/\.html$/, '').replace(/(.)\/$/, '$1/'); } catch (e) { /* adresse illisible : ignoree */ } }
+  }
+  return sortie;
+}
+
 /** « /fr/lyos/ » -> { langue: 'fr', cle: '/lyos/' } ; « /lyos/ » -> { langue: '', cle: '/lyos/' } (racine = langue par défaut). */
 function separerLangue(chemin, codes) {
   const m = /^\/([^/]+)(\/.*)?$/.exec(chemin);
   if (m && codes.has(m[1])) return { langue: m[1], cle: m[2] || '/' };
+  if (m && m[1] === 'en') return { langue: '', cle: m[2] || '/' };   // « /en/remote » : la variante anglaise d'une page, la clé est « /remote » (l'anglais est la langue par défaut, à la racine ailleurs)
   return { langue: '', cle: chemin };
 }
 const accueilDe = (langue) => (langue ? `/${langue}/` : '/');
@@ -128,10 +139,11 @@ test('2. le sélecteur de langue mène à la même page (ou à l\'accueil de la 
     const faux = [];
     for (const valeur of options) {
       const cible = normalise(valeur);
-      const lg = codes.has(cible.replace(/\//g, '')) ? cible.replace(/\//g, '') : '';
+      const { langue: lg } = separerLangue(cible, codes);                  // langue lue dans le PREMIER segment du chemin (« /fr/privacy » -> fr), pas dans le chemin entier : sinon les pages profondes sont prises pour la langue par défaut
       if (lg === langueCourante) continue;                                 // option de la langue courante
-      const memePage = cheminDans(lg, cle);
-      const attendu = existe(await statut(request, memePage)) ? memePage : accueilDe(lg);
+      const alt = alternatives(html)[lg || 'en'];                            // la page a une alternative declaree (hreflang) dans cette langue : c'est LA meme page, meme si son adresse est traduite
+      const memePage = alt || cheminDans(lg, cle);
+      const attendu = alt || (existe(await statut(request, memePage)) ? memePage : accueilDe(lg));
       if (normalise(attendu) !== cible) faux.push(`${lg || 'défaut'} → ${cible} (attendu ${normalise(attendu)})`);
       else if (!existe(await statut(request, cible))) faux.push(`${lg || 'défaut'} → ${cible} répond en erreur`);
     }
@@ -209,8 +221,11 @@ test('5. dans un navigateur, choisir une langue ouvre la même page (pas l\'accu
   await navigateur.goto(BASE + cible.p, { waitUntil: 'domcontentloaded' });
   const select = navigateur.locator('select[onchange*="location.href"]').first();
   await expect(select, 'la page doit avoir le sélecteur de langue').toBeVisible();
-  await Promise.all([navigateur.waitForURL((u) => u.pathname.startsWith('/fr'), { timeout: 20000 }), select.selectOption('/fr/')]);
-  expect(new URL(navigateur.url()).pathname, 'le sélecteur doit ouvrir la même page en français').toBe(cheminDans('fr', cible.cle));
+  // la valeur de l'option « fr » est lue dans la page (sur une page profonde elle vaut « /fr/<page>.html », pas « /fr/ » : le sélecteur mène à la MÊME page)
+  const valeurFr = (optionsSelecteur((await page(request, cible.p)).html) || []).find((v) => separerLangue(normalise(v), codes).langue === 'fr');
+  expect(valeurFr, 'le sélecteur doit proposer le français').toBeTruthy();
+  await Promise.all([navigateur.waitForURL((u) => u.pathname.startsWith('/fr'), { timeout: 20000 }), select.selectOption(valeurFr)]);
+  expect(normalise(new URL(navigateur.url()).pathname), 'le sélecteur doit ouvrir la même page en français').toBe(normalise(cheminDans('fr', cible.cle)));
 });
 
 // ---- 6. information : couverture des langues des pages transverses (non bloquant) ----
