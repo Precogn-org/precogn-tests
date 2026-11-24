@@ -43,8 +43,8 @@ click "Sign" → confirmation-screen delay, capped at 10s (the threshold propose
 
 ## PreSeed page (investor outreach)
 
-`tests/preseed/preseed.spec.js` covers `structory.ai/preseed/` (EN) and `structory.ai/fr/preseed/`
-(FR) — not a module, a single dedicated page, so it sits outside the matrix above. Six checks per
+`tests/preseed/preseed.spec.js` covers `structory.ai/investors/` (EN) and `structory.ai/fr/investors/`
+(FR) — the page formerly named PreSeed, renamed Investors; the old `/preseed/` addresses redirect (301) — not a module, a single dedicated page, so it sits outside the matrix above. Six checks per
 language: traction figures are real (fetched from `/api/preseed/traction` directly, not just read
 off the DOM) and never 0; no table of repositories and no direct link to a named repository (only
 the generic organization link); every link on the page resolves 2xx; no common word from the other
@@ -154,8 +154,8 @@ plafonné à 10s (seuil proposé à la suite de l'incident du 08/11/2026).
 
 ## Page PreSeed (démarchage investisseurs)
 
-`tests/preseed/preseed.spec.js` couvre `structory.ai/preseed/` (EN) et `structory.ai/fr/preseed/`
-(FR) — pas un module, une seule page dédiée, donc hors de la matrice ci-dessus. Six vérifications
+`tests/preseed/preseed.spec.js` couvre `structory.ai/investors/` (EN) et `structory.ai/fr/investors/`
+(FR) — l'ancienne page « PreSeed », renommée « Investors » ; les anciennes adresses `/preseed/` redirigent (301) — pas un module, une seule page dédiée, donc hors de la matrice ci-dessus. Six vérifications
 par langue : les chiffres de traction sont réels (lus directement sur `/api/preseed/traction`, pas
 seulement sur le DOM) et jamais à 0 ; aucun tableau de dépôts ni lien direct vers un dépôt nommé
 (seul le lien générique vers l'organisation reste) ; tous les liens de la page répondent en 2xx ;
