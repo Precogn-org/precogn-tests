@@ -28,6 +28,25 @@ dépôt `sites-internet`, et de l'accueil de chaque module) :
 | L'emprunt | testé (`tests/lemprunt/`, coordination A15) | non applicable -- aucune entrée PWA, page directe sans manifeste détecté | non applicable | non applicable |
 | CTI (Connect the Internet) | non testable -- aucune démo publique (dépôt `Precogn-org/precogn-connect`, privé) | non testable, même raison | non testable, même raison | non testable, même raison |
 
+## Déclinaison APP demandée pour JdB/SMC/Briqueterie — n'existe pas (17/11/2026)
+
+Demande de la nuit du 17/11 : étendre la couverture APP à `jdb-app`, `smc-app` et
+`briqueterie-app`, en plus de `compta-app`/`comptacopro-app` déjà testées. Vérifié en direct
+avant d'écrire quoi que ce soit (jamais une URL inventée) :
+- `modules.json` (dépôt `sites-internet`) ne contient AUCUNE entrée `pwa.jdb`/`pwa.smc` --
+  seules `pwa.compta` et `pwa.comptacopro` existent. Déjà documenté ainsi dans la matrice
+  ci-dessus (vérifiée le 09/11), toujours vrai le 17/11.
+- `https://structory.ai/jdb-app/` et `.../briqueterie-app/` répondent 404.
+- `https://structory.ai/smc-app/` répond 200 mais sert la page vitrine SMC ordinaire (aucune
+  balise `<link rel="manifest">`) -- même type de repli générique que `precogn.org/connect/`
+  pour CTI (voir la matrice), pas une vraie déclinaison APP.
+
+Rien ajouté pour ces trois modules : ce serait soit une URL qui 404, soit une case verte sans
+rien derrière. Reporté à l'équipe plutôt que contourné. Contribution réelle de cette PR à la
+place : `tests/compta/app.spec.js` et `tests/comptacopro/app.spec.js` complétés avec les 2
+vérifications qui manquaient encore sur les déclinaisons APP qui, elles, existent réellement
+(FR/EN, parcours d'entrée vers la vraie démo) -- voir le README.
+
 ## Correction d'un signalement précédent (08/11/2026)
 
 Une première investigation avait conclu, à tort, que la démo SMC n'était accessible que via

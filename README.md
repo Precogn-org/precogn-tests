@@ -77,6 +77,11 @@ demo lives at a different URL entirely (`precogn.org/briqueterie/`), not through
 - a safe key action where one exists and is stable (reset, a toggle, a short guided flow) — never
   invented, never a button that sends a real email, charges a real payment, or calls a real AI
 
+**App (PWA) declinations** (Compta, Compta Copro — the only two that exist, see the matrix and
+`docs/ECARTS.md`) now get the same FR/EN and key-action checks as Main: the entry screen's
+language (`?lang=fr`, explicit, not the runner's default locale) and clicking through "Try the
+demo" to the real demo content behind it (added 2026-11-17).
+
 ## Running locally
 
 ```bash
@@ -189,6 +194,11 @@ différente (`precogn.org/briqueterie/`), pas via le mécanisme `/demo/<module>`
 - une action clé sûre là où elle existe et reste stable (réinitialiser, basculer un affichage, un
   court parcours guidé) — jamais inventée, jamais un bouton qui envoie un vrai e-mail, débite un
   vrai paiement ou appelle une vraie IA
+
+**Déclinaisons Appli (PWA)** (Compta, Compta Copro — les deux seules qui existent, voir la
+matrice et `docs/ECARTS.md`) reçoivent désormais les mêmes vérifications FR/EN et action clé que
+Main : la langue de l'écran d'accueil (`?lang=fr` explicite, pas la locale par défaut du
+runner) et le clic jusqu'à la vraie démo derrière « Essayer la démo » (ajouté le 17/11/2026).
 
 ## Lancer en local
 
