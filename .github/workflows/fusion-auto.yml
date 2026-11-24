@@ -1,0 +1,273 @@
+# Fusion automatique encadrée des PR techniques (2_PROCESS.md B.5.14). Workflow RÉUTILISABLE : il ne s'exécute que s'il est appelé
+# ACTIF PAR DÉFAUT (décision de larose75, 24/11/2026). Frein : variable de dépôt FUSION_AUTO = off, ou suppression de ce fichier.
+# ACTIVE by default; brake: repository variable FUSION_AUTO = off, or delete this file. Source de vérité du script : fusion-auto/evaluer.py
+# (ne pas modifier la copie ci-dessous : `python3 fusion-auto/generer_workflow.py` la régénère).
+name: fusion-auto
+on:
+  workflow_dispatch:
+  pull_request:
+    types: [labeled, synchronize]
+  issue_comment:
+    types: [created]
+  check_suite:
+    types: [completed]
+  schedule:
+    - cron: "*/15 * * * *"
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+  checks: read
+  statuses: read
+jobs:
+  fusion-auto:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Évaluer et, si TOUTES les conditions sont remplies, fusionner
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          FUSION_AUTO: ${{ vars.FUSION_AUTO }}
+        run: |
+          cat > fusion_auto_evaluer.py <<'PYEOF_FUSION_AUTO'
+          #!/usr/bin/env python3
+          """Fusion automatique encadrée des PR techniques (2_PROCESS.md B.5.14, décision du 23/11/2026).
+          Bounded auto-merge of technical PRs (B.5.14).
+
+          FR. `evaluer(pr)` est une fonction PURE : elle rend la liste des raisons de refus (liste vide = toutes les
+          conditions du point 4 sont remplies). `traiter(api, repo, executer)` lit GitHub, évalue chaque PR portant
+          l'étiquette « fusion-auto » et, avec executer=True ET sauf FUSION_AUTO=off (frein), fusionne (sha vérifié) puis journalise.
+          Aucune session ne fusionne : seule l'Action le fait. Aucun secret : le jeton est celui de l'Action (GITHUB_TOKEN).
+          EN. `evaluer(pr)` is a PURE function returning the refusal reasons (empty = every condition of point 4 holds).
+          `traiter` merges with executer=True unless FUSION_AUTO=off (brake). Only the Action merges; no session does.
+          """
+          import json
+          import os
+          import re
+          import sys
+          import urllib.error
+          import urllib.request
+
+          SIGNATURE = "🤖 Wolli proudly powered by Claude Code"
+          ETIQUETTE = "fusion-auto"
+          MAX_FICHIERS, MAX_LIGNES = 30, 800
+          CHEMINS_AUTORISES = ("tests/", "docs/")   # v1 prudente : périmètre technique démontrable par machine
+          DOCS_REFERENCE = ("0_PRECOGN.md", "1_STRUCTORY.md", "2_PROCESS.md")
+          INTERDITS = re.compile(
+              r"(^|/)(\.github|\.env[^/]*|wrangler[^/]*|appsscript\.json|dockerfile[^/]*|docker-compose[^/]*)(/|$)"
+              r"|secret|credential|token|deploy|deploiement|nginx|ufw|firewall|pare-feu|dns|cloudflared|auth|login|session"
+              r"|journal|ledger|facture|invoice|billing|stripe|paiement|payment|prix|tarif|\.service$|\.timer$|\.sh$",
+              re.I)
+          MOTIFS_SECRETS = [
+              ("clé ou jeton", re.compile(r"ghp_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]{20,}|xox[abprs]-[A-Za-z0-9-]{10,}|AKIA[0-9A-Z]{16}|AIza[0-9A-Za-z_-]{30,}|sk-[A-Za-z0-9]{20,}|-----BEGIN [A-Z ]*PRIVATE KEY")),
+              ("en-tête d'autorisation", re.compile(r"Bearer\s+[A-Za-z0-9._~+/-]{20,}", re.I)),
+              ("valeur secrète affectée", re.compile(r"(api[_-]?key|secret|token|passw(or)?d)\s*[:=]\s*['\"][^'\"\s]{8,}['\"]", re.I)),
+              ("adresse e-mail", re.compile(r"[A-Za-z0-9._%+-]+@(?!example\.|anthropic\.com)[A-Za-z0-9-]+\.[A-Za-z]{2,}")),
+              ("adresse IP", re.compile(r"\b(?!127\.0\.0\.1\b|0\.0\.0\.0\b|192\.0\.2\.|198\.51\.100\.|203\.0\.113\.)\d{1,3}(\.\d{1,3}){3}\b")),
+              ("chemin privé", re.compile(r"/home/[A-Za-z0-9_-]+/|/etc/[A-Za-z0-9_-]+|\.config/|\.credentials")),
+          ]
+          RE_RISQUE = re.compile(r"Risque\s*(\d)\s*/\s*3", re.I)
+          RE_AUTEURE = re.compile(r"^Auteure\s*:\s*(.+?)\s*$", re.M)
+          RE_RELECTURE = re.compile(r"^Relectrice\s*:\s*(.+?)\s*·\s*SHA\s*([0-9a-f]{40})\s*$", re.M)
+
+
+          def _lignes_ajoutees(patch):
+              return [l[1:] for l in (patch or "").splitlines() if l.startswith("+") and not l.startswith("+++")]
+
+
+          def evaluer(pr):
+              """pr : dict {flag, base, draft, mergeable, head_sha, body, labels, label_added_at, files[{filename,additions,deletions,patch}],
+              checks[{name,status,conclusion}], comments[{body,created_at}]}. Rend la liste des refus ([] = accord)."""
+              r = []
+              if (pr.get("flag") or "").strip().lower() == "off":
+                  r.append("règle suspendue : FUSION_AUTO=off (frein, B.5.14 point 8)")
+              if pr.get("draft"):
+                  r.append("PR en brouillon")
+              if pr.get("base") != "main":
+                  r.append("la base n'est pas main")
+              if pr.get("mergeable") is False:
+                  r.append("conflit avec la base")
+              body = pr.get("body") or ""
+              # --- risque, signature, bilingue
+              risques = RE_RISQUE.findall(body)
+              if not risques or risques[0] != "1":
+                  r.append("le risque annoncé n'est pas 1/3")
+              premiere = next((l.strip() for l in body.splitlines() if l.strip()), "")
+              if premiere != SIGNATURE:
+                  r.append("signature absente en première ligne")
+              if not (re.search(r"^##\s*FR\b", body, re.M) and re.search(r"^##\s*EN\b", body, re.M)):
+                  r.append("PR non bilingue (sections « ## FR » et « ## EN » attendues)")
+              # --- périmètre et taille
+              fichiers = pr.get("files") or []
+              if not fichiers:
+                  r.append("aucun fichier modifié")
+              if len(fichiers) > MAX_FICHIERS:
+                  r.append("plus de %d fichiers" % MAX_FICHIERS)
+              if sum(int(f.get("additions", 0)) + int(f.get("deletions", 0)) for f in fichiers) > MAX_LIGNES:
+                  r.append("plus de %d lignes" % MAX_LIGNES)
+              for f in fichiers:
+                  nom = f.get("filename", "")
+                  base = nom.rsplit("/", 1)[-1]
+                  if base in DOCS_REFERENCE:
+                      r.append("document de référence touché (%s) : risque 3 d'office, accord écrit de larose75" % base)
+                  elif INTERDITS.search(nom):
+                      r.append("fichier interdit (production, déploiement, secrets, authentification, pare-feu/DNS, journal/argent, CI) : %s" % nom)
+                  elif not nom.startswith(CHEMINS_AUTORISES):
+                      r.append("hors du périmètre technique v1 (tests/, docs/) : %s" % nom)
+                  if f.get("patch") is None:
+                      r.append("contenu illisible (fichier binaire ou trop gros) : %s" % nom)
+              # --- contrôle des secrets et données privées (lignes ajoutées)
+              for f in fichiers:
+                  for ligne in _lignes_ajoutees(f.get("patch")):
+                      for nom_motif, motif in MOTIFS_SECRETS:
+                          if motif.search(ligne):
+                              r.append("contrôle secrets/données privées : %s dans %s" % (nom_motif, f.get("filename")))
+                              break
+                      else:
+                          continue
+                      break
+              # --- CI entièrement verte, sans test sauté
+              checks = pr.get("checks") or []
+              if not checks:
+                  r.append("aucune vérification de CI trouvée")
+              for c in checks:
+                  if c.get("status") != "completed" or c.get("conclusion") != "success":
+                      r.append("CI non verte ou test sauté : %s (%s/%s)" % (c.get("name"), c.get("status"), c.get("conclusion")))
+              # --- relecture signée par une AUTRE session, étiquette posée après
+              m_aut = RE_AUTEURE.search(body)
+              auteure = m_aut.group(1).strip() if m_aut else ""
+              if not auteure:
+                  r.append("ligne « Auteure : <session> » absente du corps")
+              relecture = None
+              for c in pr.get("comments") or []:
+                  m = RE_RELECTURE.search(c.get("body") or "")
+                  if m:
+                      relecture = (m.group(1).strip(), m.group(2), c)
+              if relecture is None:
+                  r.append("aucune relecture signée (« Relectrice : <session> · SHA <40 caractères> »)")
+              else:
+                  nom_rel, sha_rel, com = relecture
+                  corps_rel = com.get("body") or ""
+                  if auteure and nom_rel.lower() == auteure.lower():
+                      r.append("la relectrice est l'auteure : elle ne peut pas relire sa propre PR")
+                  if sha_rel != pr.get("head_sha"):
+                      r.append("la relecture porte sur un autre commit que la tête actuelle de la PR (relecture périmée)")
+                  if not next((l.strip() for l in corps_rel.splitlines() if l.strip()), "") == SIGNATURE:
+                      r.append("relecture non signée (première ligne)")
+                  if len([l for l in corps_rel.splitlines() if l.lstrip().startswith("- ")]) < 3:
+                      r.append("la relecture ne liste pas ce qui a été vérifié (au moins 3 points « - »)")
+                  if ETIQUETTE not in (pr.get("labels") or []):
+                      r.append("étiquette « %s » absente" % ETIQUETTE)
+                  elif not pr.get("label_added_at") or pr["label_added_at"] < com.get("created_at", ""):
+                      r.append("l'étiquette a été posée AVANT la relecture")
+              return r
+
+
+          # ----------------------------------------------------------------------------- accès GitHub
+          class Api:
+              def __init__(self, jeton):
+                  self.jeton = jeton
+
+              def appel(self, methode, chemin, corps=None):
+                  req = urllib.request.Request("https://api.github.com" + chemin, method=methode,
+                                               data=json.dumps(corps).encode() if corps is not None else None,
+                                               headers={"Authorization": "Bearer " + self.jeton, "Accept": "application/vnd.github+json",
+                                                        "X-GitHub-Api-Version": "2022-11-28", "Content-Type": "application/json"})
+                  try:
+                      with urllib.request.urlopen(req, timeout=30) as rep:
+                          return rep.status, json.loads(rep.read() or "null")
+                  except urllib.error.HTTPError as e:
+                      return e.code, None
+
+              def liste(self, chemin):
+                  out, page = [], 1
+                  while True:
+                      s, d = self.appel("GET", "%s%sper_page=100&page=%d" % (chemin, "&" if "?" in chemin else "?", page))
+                      if s != 200 or not isinstance(d, list):
+                          raise RuntimeError("lecture GitHub impossible (%s) : %s" % (s, chemin.split("?")[0]))
+                      out += d
+                      if len(d) < 100:
+                          return out
+                      page += 1
+
+
+          def charger(api, repo, numero, flag):
+              s, p = api.appel("GET", "/repos/%s/pulls/%d" % (repo, numero))
+              if s != 200:
+                  raise RuntimeError("PR illisible")
+              sha = p["head"]["sha"]
+              fichiers = api.liste("/repos/%s/pulls/%d/files" % (repo, numero))
+              checks = []
+              s, cr = api.appel("GET", "/repos/%s/commits/%s/check-runs?per_page=100" % (repo, sha))
+              for c in (cr or {}).get("check_runs", []):
+                  if not c["name"].lower().startswith(ETIQUETTE):   # l'Action ne s'attend pas elle-même
+                      checks.append({"name": c["name"], "status": c["status"], "conclusion": c.get("conclusion")})
+              s, st = api.appel("GET", "/repos/%s/commits/%s/status" % (repo, sha))
+              for x in (st or {}).get("statuses", []):
+                  checks.append({"name": x["context"], "status": "completed" if x["state"] != "pending" else "in_progress", "conclusion": x["state"]})
+              commentaires = [{"body": c["body"], "created_at": c["created_at"]} for c in api.liste("/repos/%s/issues/%d/comments" % (repo, numero))]
+              evts = [e for e in api.liste("/repos/%s/issues/%d/events" % (repo, numero)) if e.get("event") == "labeled" and (e.get("label") or {}).get("name") == ETIQUETTE]
+              return {"flag": flag, "base": p["base"]["ref"], "draft": p.get("draft", False), "mergeable": p.get("mergeable"), "head_sha": sha,
+                      "body": p.get("body") or "", "labels": [l["name"] for l in p.get("labels", [])],
+                      "label_added_at": evts[-1]["created_at"] if evts else None,
+                      "files": [{"filename": f["filename"], "additions": f["additions"], "deletions": f["deletions"], "patch": f.get("patch")} for f in fichiers],
+                      "checks": checks, "comments": commentaires}
+
+
+          def traiter(api, repo, flag, executer, sortie=print):
+              """Évalue chaque PR ouverte portant l'étiquette ; fusionne seulement si executer ET flag != off (actif par défaut)."""
+              s, issues = api.appel("GET", "/repos/%s/issues?labels=%s&state=open&per_page=100" % (repo, ETIQUETTE))
+              resultats = []
+              for it in (issues or []):
+                  if "pull_request" not in it:
+                      continue
+                  n = it["number"]
+                  pr = charger(api, repo, n, flag)
+                  refus = evaluer(pr)
+                  if refus:
+                      sortie("PR %d : REFUS (%d) : %s" % (n, len(refus), " | ".join(refus)))
+                      resultats.append((n, False))
+                      continue
+                  if not executer:
+                      sortie("PR %d : ACCORD (simulation, rien fusionné)" % n)
+                      resultats.append((n, True))
+                      continue
+                  s, d = api.appel("PUT", "/repos/%s/pulls/%d/merge" % (repo, n),
+                                   {"sha": pr["head_sha"], "merge_method": "merge", "commit_title": "Fusion automatique encadrée (B.5.14) : PR #%d" % n})
+                  if s != 200:
+                      sortie("PR %d : fusion refusée par GitHub (HTTP %s)" % (n, s))
+                      resultats.append((n, False))
+                      continue
+                  auteure = RE_AUTEURE.search(pr["body"]).group(1).strip()
+                  relectrice = [m for m in (RE_RELECTURE.search(c["body"]) for c in pr["comments"]) if m][-1].group(1).strip()
+                  note = ("%s\n\n**FUSION AUTO (B.5.14)** · PR #%d · auteure : %s · relectrice : %s · commit vérifié : %s\n"
+                          "Retour arrière en une commande : `git revert -m 1 %s`" % (SIGNATURE, n, auteure, relectrice, pr["head_sha"], (d or {}).get("sha", "<commit de fusion>")))
+                  api.appel("POST", "/repos/%s/issues/%d/comments" % (repo, n), {"body": note})
+                  sj, jl = api.appel("GET", "/repos/%s/issues?labels=journal-fusion-auto&state=open&per_page=1" % repo)
+                  if sj == 200 and jl:
+                      numero_j = jl[0]["number"]
+                  else:
+                      sj, cree = api.appel("POST", "/repos/%s/issues" % repo, {"title": "Journal des fusions automatiques / Auto-merge log", "labels": ["journal-fusion-auto"],
+                                                                                "body": SIGNATURE + "\n\nUne ligne par fusion automatique (B.5.14). One line per auto-merge."})
+                      numero_j = (cree or {}).get("number")
+                  if numero_j:
+                      api.appel("POST", "/repos/%s/issues/%d/comments" % (repo, numero_j), {"body": note})
+                  sortie("PR %d : FUSIONNÉE automatiquement (relectrice %s)" % (n, relectrice))
+                  resultats.append((n, True))
+              return resultats
+
+
+          def main():
+              repo, jeton = os.environ.get("GITHUB_REPOSITORY", ""), os.environ.get("GITHUB_TOKEN", "")
+              if not repo or not jeton:
+                  print("GITHUB_REPOSITORY et GITHUB_TOKEN requis")
+                  return 2
+              flag = os.environ.get("FUSION_AUTO", "").strip().lower()   # vide = ACTIF par défaut ; « off » = frein
+              executer = "--executer" in sys.argv and flag != "off"
+              traiter(Api(jeton), repo, flag, executer)
+              return 0
+
+
+          if __name__ == "__main__":
+              sys.exit(main())
+          PYEOF_FUSION_AUTO
+          python3 fusion_auto_evaluer.py --executer
