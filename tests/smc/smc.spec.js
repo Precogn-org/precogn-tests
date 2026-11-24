@@ -42,12 +42,8 @@ test.describe('SMC — démo connectée (sans compte, lecture seule)', () => {
     expect(erreurs, 'aucune erreur console attendue').toEqual([]);
   });
 
-  test('aucun débordement horizontal à 390 px', async ({ page }, testInfo) => {
-    // Défaut connu, NON contourné : la barre de navigation déborde de ~249px à 390px de large
-    // (boutons "Automatiser"/"Rapports"/"Organisation"), voir issue #6. Échec attendu sur le
-    // projet mobile-390px seulement -- la suite alerte d'elle-même si ça finit par passer sans
-    // raison (régression inverse non expliquée).
-    test.fail(testInfo.project.name === 'mobile-390px', 'nav débordante à 390px, issue #6');
+  test('aucun débordement horizontal à 390 px', async ({ page }) => {
+    // La démo est maintenant l'appli SMC (menu du bas sur téléphone) : plus de débordement à 390 px (issue #6).
     await page.goto(URL_DEMO);
     await page.getByText('PATRIMOINE TOTAL', { exact: false }).waitFor({ timeout: 15000 });
     const debordants = await sansDebordementHorizontal(page);
@@ -63,7 +59,7 @@ test.describe('SMC — démo connectée (sans compte, lecture seule)', () => {
 
   test('action clé : rafraîchir les comptes', async ({ page }) => {
     await page.goto(URL_DEMO);
-    const bouton = page.getByRole('button', { name: /Rafraichir/i });
+    const bouton = page.getByRole('button', { name: /Rafra[iî]chir/i });
     await bouton.waitFor({ timeout: 15000 });
     await bouton.click();
     // Pas d'assertion plus fine que "le bouton reste présent et cliquable sans planter la page" --
