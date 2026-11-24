@@ -229,3 +229,10 @@ sans ouvrir de navigateur ni lire de données d'organisation.
 - `npm run test:security:analyzor` : lance uniquement ces contrôles.
 - `ANALYZOR_BASE_URL=http://127.0.0.1:8000 npm run test:security:analyzor` : cible Analyzor local.
 - `npm test` inclut cette suite ; les contrôles sont ignorés si `ANALYZOR_BASE_URL` n'est pas défini.
+
+## Pages transverses et sélecteur de langue du site (`tests/site/`)
+
+Les specs par module ne couvrent pas les pages transverses du site public (accueil, pages hors module) ni le sélecteur de langue. `tests/site/site-langues.spec.js` part du `sitemap.xml` (aucune liste à entretenir) et vérifie : (1) aucune page indexée en 404 ; (2) le sélecteur de langue mène, pour chaque langue, à la **même page** si elle existe dans cette langue, sinon à l'**accueil** de la langue, jamais en 404 ; (3) hreflang cohérents (adresses valides, auto-référence, réciproque, x-default) ; (4) liens internes non cassés ; (5) dans un vrai navigateur, choisir une langue ouvre la même page ; (6) information : couverture des langues par page (non bloquant). Lecture seule, sans clé.
+
+- `npm run test:site` : lance uniquement ce spec. `SITE_URL=https://… npm run test:site` : autre cible.
+- Ce spec **échoue tant que le sélecteur ou les hreflang ont un défaut** ; il passe quand le site est corrigé.
