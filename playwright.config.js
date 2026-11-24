@@ -4,6 +4,11 @@
 // @ts-check
 const { defineConfig, devices } = require('@playwright/test');
 
+// Agent identifiable (ticket Redmine n° 337) : nos tests automatiques s'annoncent « PreCognTests/1.0 » en plus du profil Chrome, pour pouvoir les distinguer des visites réelles dans les mesures d'audience.
+// Aucun en-tête personnalisé (il serait envoyé à toutes les requêtes, y compris inter-origines).
+const AGENT_TESTS = ' PreCognTests/1.0';
+const chrome = () => ({ ...devices['Desktop Chrome'], userAgent: devices['Desktop Chrome'].userAgent + AGENT_TESTS });
+
 module.exports = defineConfig({
   testDir: './tests',
   // tests/signature-e2e/ : parcours réel de signature, envoie un vrai e-mail et consomme un
@@ -25,10 +30,10 @@ module.exports = defineConfig({
   },
   projects: [
     // Desktop : navigation standard.
-    { name: 'desktop-chromium', use: { ...devices['Desktop Chrome'] } },
+    { name: 'desktop-chromium', use: chrome() },
     // Mobile 390px : exigence "aucun débordement à 390 px" du ticket #152. Chromium explicitement
     // (pas devices['iPhone 12'], qui utilise WebKit par défaut) : le workflow CI n'installe QUE
     // chromium (`playwright install --with-deps chromium`), jamais webkit.
-    { name: 'mobile-390px', use: { ...devices['Desktop Chrome'], viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true } },
+    { name: 'mobile-390px', use: { ...chrome(), viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true } },
   ],
 });

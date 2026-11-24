@@ -10,6 +10,11 @@
 // @ts-check
 const { defineConfig, devices } = require('@playwright/test');
 
+// Agent identifiable (ticket Redmine n° 337) : nos tests automatiques s'annoncent « PreCognTests/1.0 » en plus du profil Chrome, pour pouvoir les distinguer des visites réelles dans les mesures d'audience.
+// Aucun en-tête personnalisé (il serait envoyé à toutes les requêtes, y compris inter-origines).
+const AGENT_TESTS = ' PreCognTests/1.0';
+const chrome = () => ({ ...devices['Desktop Chrome'], userAgent: devices['Desktop Chrome'].userAgent + AGENT_TESTS });
+
 module.exports = defineConfig({
   testDir: './tests/signature-e2e',
   fullyParallel: false,
@@ -21,5 +26,5 @@ module.exports = defineConfig({
     video: 'retain-on-failure',
   },
   // Un seul navigateur suffit pour mesurer un délai serveur -- pas besoin du projet mobile-390px.
-  projects: [{ name: 'desktop-chromium', use: { ...devices['Desktop Chrome'] } }],
+  projects: [{ name: 'desktop-chromium', use: chrome() }],
 });
